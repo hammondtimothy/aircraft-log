@@ -318,10 +318,15 @@
     letter-spacing: 0.1em;
     color: var(--muted);
     font-family: var(--font-mono);
-    padding: 10px 14px;
+    padding: 10px 8px;
     text-align: left;
     border-bottom: 1px solid var(--border);
   }
+
+  th.date-th   { width: 78px; }
+  th.reg-th    { width: 80px; }
+  th.notes-th  { width: auto; }
+  th.action-th { width: 30px; }
 
   tbody tr {
     border-bottom: 1px solid rgba(79,195,247,0.07);
@@ -332,25 +337,27 @@
   tbody tr:hover { background: rgba(79,195,247,0.05); }
 
   td {
-    padding: 11px 14px;
+    padding: 11px 8px;
     font-size: 14px;
     vertical-align: top;
   }
 
   td.date-col {
     font-family: var(--font-mono);
-    font-size: 13px;
+    font-size: 12px;
     color: var(--muted);
     white-space: nowrap;
+    width: 78px;
   }
 
   td.reg-col {
     font-family: var(--font-mono);
     font-weight: 700;
-    font-size: 15px;
+    font-size: 14px;
     color: var(--accent);
-    letter-spacing: 0.06em;
+    letter-spacing: 0.04em;
     white-space: nowrap;
+    width: 80px;
   }
 
   td.notes-col {
@@ -363,7 +370,8 @@
 
   td.action-col {
     text-align: center;
-    width: 36px;
+    width: 30px;
+    padding: 11px 4px;
   }
 
   .del-btn {
@@ -552,10 +560,10 @@
     <table>
       <thead>
         <tr>
-          <th>Date</th>
-          <th>Registration</th>
-          <th>Notes</th>
-          <th></th>
+          <th class="date-th">Date</th>
+          <th class="reg-th">Reg</th>
+          <th class="notes-th">Notes</th>
+          <th class="action-th"></th>
         </tr>
       </thead>
       <tbody id="log-body"></tbody>
