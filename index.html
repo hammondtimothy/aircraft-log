@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Aircraft Log">
+<title>Aircraft Log</title>
+<style>
+  :root {
+    --sky: #0a1628;
+    --horizon: #112240;
+    --panel: #1a2e4a;
+    --accent: #4fc3f7;
+    --accent2: #81d4fa;
+    --text: #e8f4fd;
+    --muted: #7ba7c4;
+    --danger: #ef5350;
+    --success: #66bb6a;
+    --border: rgba(79,195,247,0.18);
+    --radius: 10px;
+    --font-mono: 'SF Mono', 'Courier New', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--sky);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100dvh;
+    padding-bottom: 40px;
+  }
+
+  header {
+    background: var(--horizon);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px 12px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .header-inner {
+    max-width: 700px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo svg { flex-shrink: 0; }
+
+  .logo-text h1 {
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .logo-text p {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    font-family: var(--font-mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .entry-count {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: var(--muted);
+    font-family: var(--font-mono);
+  }
+
+  .entry-count span { color: var(--accent); font-weight: 700; }
+
+  main {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 20px 16px 0;
+  }
+
+  /* Entry form */
+  .form-card {
+    background: var(--horizon);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 24px;
+  }
+
+  .form-card h2 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+
+  .date-display {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .date-display .label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-family: var(--font-mono);
+    flex-shrink: 0;
+  }
+
+  .date-display .value {
+    font-size: 14px;
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-weight: 600;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .input-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    font-family: var(--font-mono);
+  }
+
+  input[type="text"], textarea {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 16px; /* prevents iOS zoom */
+    padding: 11px 13px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s;
+    -webkit-appearance: none;
+  }
+
+  input[type="text"]:focus, textarea:focus {
+    border-color: var(--accent);
+  }
+
+  input[type="text"]::placeholder, textarea::placeholder {
+    color: var(--muted);
+    opacity: 0.6;
+  }
+
+  #reg-input {
+    text-transform: uppercase;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    font-size: 17px;
+  }
+
+  textarea {
+    resize: none;
+    height: 70px;
+    font-size: 15px;
+    line-height: 1.4;
+  }
+
+  .add-btn {
+    width: 100%;
+    background: var(--accent);
+    color: var(--sky);
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 13px;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    margin-top: 4px;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s, transform 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .add-btn:active { transform: scale(0.98); background: var(--accent2); }
+
+  /* Log section */
+  .log-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .log-header h2 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+  }
+
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .copy-btn, .clear-btn, .filter-btn {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 12px;
+    padding: 6px 12px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+  }
+
+  .copy-btn {
+    background: var(--panel);
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .copy-btn:active { background: rgba(79,195,247,0.15); }
+
+  .filter-btn {
+    background: var(--panel);
+    color: var(--muted);
+  }
+
+  .filter-btn.active {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .clear-btn {
+    background: var(--panel);
+    color: var(--danger);
+    border-color: rgba(239,83,80,0.4);
+  }
+
+  .clear-btn:active { background: rgba(239,83,80,0.1); }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--success);
+    color: #0a1628;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 10px 22px;
+    border-radius: 30px;
+    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    z-index: 100;
+    white-space: nowrap;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* Log table */
+  .log-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--horizon);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 340px;
+  }
+
+  thead th {
+    background: var(--panel);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  tbody tr {
+    border-bottom: 1px solid rgba(79,195,247,0.07);
+    transition: background 0.1s;
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(79,195,247,0.05); }
+
+  td {
+    padding: 11px 14px;
+    font-size: 14px;
+    vertical-align: top;
+  }
+
+  td.date-col {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  td.reg-col {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+
+  td.notes-col {
+    color: var(--text);
+    opacity: 0.85;
+    word-break: break-word;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  td.action-col {
+    text-align: center;
+    width: 36px;
+  }
+
+  .del-btn {
+    background: none;
+    border: none;
+    color: rgba(239,83,80,0.4);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .del-btn:hover { color: var(--danger); }
+
+  .empty-state {
+    text-align: center;
+    padding: 50px 20px;
+    color: var(--muted);
+  }
+
+  .empty-state .big { font-size: 40px; margin-bottom: 10px; }
+  .empty-state p { font-size: 14px; }
+
+  /* Search */
+  .search-wrap {
+    margin-bottom: 12px;
+  }
+
+  #search-input {
+    background: var(--horizon);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 15px;
+    padding: 10px 13px;
+    width: 100%;
+    outline: none;
+    -webkit-appearance: none;
+  }
+
+  #search-input:focus { border-color: var(--accent); }
+  #search-input::placeholder { color: var(--muted); opacity: 0.6; }
+
+  .copy-today-info {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 8px;
+    text-align: right;
+  }
+
+  .export-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .export-btn {
+    flex: 1;
+    min-width: 130px;
+    background: var(--panel);
+    border: 1px solid rgba(102,187,106,0.45);
+    border-radius: 8px;
+    color: #66bb6a;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 11px 14px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    letter-spacing: 0.03em;
+  }
+
+  .export-btn:active { background: rgba(102,187,106,0.12); }
+
+  .import-btn {
+    flex: 1;
+    min-width: 130px;
+    background: var(--panel);
+    border: 1px solid rgba(79,195,247,0.35);
+    border-radius: 8px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 11px 14px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    letter-spacing: 0.03em;
+  }
+
+  .import-btn:active { background: rgba(79,195,247,0.08); }
+
+  .export-hint {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: -12px;
+    margin-bottom: 16px;
+    opacity: 0.7;
+    padding: 0 2px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <path d="M4 18 L14 8 L24 18" stroke="#4fc3f7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M10 18 L14 14 L18 18" stroke="#81d4fa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M2 20 L26 20" stroke="#4fc3f7" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+        <circle cx="14" cy="8" r="2" fill="#4fc3f7"/>
+      </svg>
+      <div class="logo-text">
+        <h1>Aircraft Log</h1>
+        <p id="live-clock">--:-- UTC</p>
+      </div>
+    </div>
+    <div class="entry-count">Logged: <span id="total-count">0</span></div>
+  </div>
+</header>
+
+<main>
+  <!-- Entry Form -->
+  <div class="form-card">
+    <h2>New Entry</h2>
+    <div class="date-display">
+      <span class="label">Date</span>
+      <span class="value" id="auto-date">—</span>
+    </div>
+    <div class="input-row">
+      <div class="input-group">
+        <label for="reg-input">Registration</label>
+        <input type="text" id="reg-input" placeholder="G-ABCD" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" maxlength="12">
+      </div>
+    </div>
+    <div class="input-group" style="margin-bottom:12px">
+      <label for="notes-input">Notes</label>
+      <textarea id="notes-input" placeholder="Optional notes…"></textarea>
+    </div>
+    <button class="add-btn" onclick="addEntry()">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a1 1 0 011 1v4h4a1 1 0 110 2H9v4a1 1 0 11-2 0V9H3a1 1 0 110-2h4V3a1 1 0 011-1z"/></svg>
+      Add Entry
+    </button>
+  </div>
+
+  <div class="export-bar">
+    <button class="export-btn" onclick="exportCSV()">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="currentColor"><path d="M7.5 10.5l-4-4h2.5V2h3v4.5H11.5l-4 4zM2 12h11v1.5H2V12z"/></svg>
+      Export CSV
+    </button>
+    <button class="import-btn" onclick="document.getElementById('import-file').click()">
+      <svg width="15" height="15" viewBox="0 0 15 15" fill="currentColor"><path d="M7.5 4.5l4 4H9V13H6V8.5H3.5l4-4zM2 1.5h11V3H2V1.5z"/></svg>
+      Import CSV
+    </button>
+    <input type="file" id="import-file" accept=".csv" style="display:none" onchange="importCSV(event)">
+  </div>
+  <p class="export-hint">💡 Save exported CSV to OneDrive to back up &amp; sync across devices</p>
+
+  <!-- Log -->
+  <div class="log-header">
+    <h2>Flight Log</h2>
+    <div class="toolbar">
+      <button class="copy-btn" onclick="copyRegistrations('all')">⎘ Copy All Reg.</button>
+      <button class="copy-btn" id="copy-today-btn" onclick="copyRegistrations('today')">⎘ Today</button>
+      <button class="clear-btn" onclick="clearAll()">✕ Clear All</button>
+    </div>
+  </div>
+
+  <div class="search-wrap">
+    <input type="text" id="search-input" placeholder="Search registrations or notes…" oninput="renderTable()" autocorrect="off" autocapitalize="off">
+  </div>
+
+  <div class="log-table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Registration</th>
+          <th>Notes</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="log-body"></tbody>
+    </table>
+  </div>
+  <div class="copy-today-info" id="today-info"></div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'aircraft_log_v1';
+
+function loadEntries() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch { return []; }
+}
+
+function saveEntries(entries) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+}
+
+function getToday() {
+  const now = new Date();
+  const d = String(now.getDate()).padStart(2,'0');
+  const m = String(now.getMonth()+1).padStart(2,'0');
+  const y = now.getFullYear();
+  return `${d}/${m}/${y}`;
+}
+
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getUTCHours()).padStart(2,'0');
+  const min = String(now.getUTCMinutes()).padStart(2,'0');
+  document.getElementById('live-clock').textContent = `${h}:${min} UTC`;
+  document.getElementById('auto-date').textContent = getToday();
+}
+
+function addEntry() {
+  const reg = document.getElementById('reg-input').value.trim().toUpperCase();
+  if (!reg) {
+    document.getElementById('reg-input').focus();
+    showToast('Enter a registration', '#ef5350');
+    return;
+  }
+  const notes = document.getElementById('notes-input').value.trim();
+  const entries = loadEntries();
+  entries.unshift({ date: getToday(), reg, notes, id: Date.now() });
+  saveEntries(entries);
+  document.getElementById('reg-input').value = '';
+  document.getElementById('notes-input').value = '';
+  document.getElementById('reg-input').focus();
+  renderTable();
+  showToast('✓ Entry added');
+}
+
+function deleteEntry(id) {
+  const entries = loadEntries().filter(e => e.id !== id);
+  saveEntries(entries);
+  renderTable();
+}
+
+function clearAll() {
+  if (!confirm('Delete all log entries? This cannot be undone.')) return;
+  saveEntries([]);
+  renderTable();
+}
+
+function copyRegistrations(mode) {
+  let entries = loadEntries();
+  if (mode === 'today') {
+    const today = getToday();
+    entries = entries.filter(e => e.date === today);
+  }
+  const search = document.getElementById('search-input').value.trim().toLowerCase();
+  if (search) {
+    entries = entries.filter(e =>
+      e.reg.toLowerCase().includes(search) ||
+      (e.notes || '').toLowerCase().includes(search)
+    );
+  }
+  if (!entries.length) { showToast('No registrations to copy', '#ef5350'); return; }
+  const text = entries.map(e => e.reg).join('\n');
+  navigator.clipboard.writeText(text).then(() => {
+    showToast(`⎘ Copied ${entries.length} registration${entries.length>1?'s':''}`);
+  }).catch(() => {
+    // Fallback for older iOS
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast(`⎘ Copied ${entries.length} registration${entries.length>1?'s':''}`);
+  });
+}
+
+function renderTable() {
+  const entries = loadEntries();
+  const search = document.getElementById('search-input').value.trim().toLowerCase();
+  const today = getToday();
+
+  const filtered = search
+    ? entries.filter(e =>
+        e.reg.toLowerCase().includes(search) ||
+        (e.notes||'').toLowerCase().includes(search) ||
+        e.date.includes(search)
+      )
+    : entries;
+
+  const todayCount = entries.filter(e => e.date === today).length;
+  document.getElementById('total-count').textContent = entries.length;
+  document.getElementById('today-info').textContent =
+    todayCount > 0 ? `${todayCount} entr${todayCount===1?'y':'ies'} today` : '';
+
+  const tbody = document.getElementById('log-body');
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><div class="big">✈️</div><p>${entries.length ? 'No results match your search.' : 'No entries yet. Add your first aircraft above.'}</p></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(e => `
+    <tr>
+      <td class="date-col">${e.date}</td>
+      <td class="reg-col">${escHtml(e.reg)}</td>
+      <td class="notes-col">${escHtml(e.notes || '—')}</td>
+      <td class="action-col"><button class="del-btn" onclick="deleteEntry(${e.id})" title="Delete">✕</button></td>
+    </tr>
+  `).join('');
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+let toastTimer;
+function showToast(msg, bg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = bg || 'var(--success)';
+  t.style.color = bg ? '#fff' : 'var(--sky)';
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function exportCSV() {
+  const entries = loadEntries();
+  if (!entries.length) { showToast('Nothing to export', '#ef5350'); return; }
+
+  const header = 'Date,Registration,Notes';
+  const rows = entries.map(e => {
+    const notes = (e.notes || '').replace(/"/g, '""');
+    return `${e.date},${e.reg},"${notes}"`;
+  });
+  const csv = [header, ...rows].join('\r\n');
+
+  // Generate filename with today's date
+  const now = new Date();
+  const stamp = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
+  const filename = `aircraft-log-${stamp}.csv`;
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+  showToast(`✓ Exported ${entries.length} entries`);
+}
+
+function importCSV(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const lines = e.target.result.split(/\r?\n/).filter(l => l.trim());
+      // Skip header row
+      const dataLines = lines[0].toLowerCase().startsWith('date') ? lines.slice(1) : lines;
+      if (!dataLines.length) { showToast('No data found in file', '#ef5350'); return; }
+
+      const imported = [];
+      for (const line of dataLines) {
+        // Parse CSV properly handling quoted notes field
+        const match = line.match(/^([^,]+),([^,]+),?"?(.*?)"?$/s);
+        if (!match) continue;
+        const [, date, reg, notes] = match;
+        if (!reg.trim()) continue;
+        imported.push({
+          date: date.trim(),
+          reg: reg.trim().toUpperCase(),
+          notes: (notes || '').replace(/""/g, '"').trim(),
+          id: Date.now() + Math.random()
+        });
+      }
+
+      if (!imported.length) { showToast('No valid entries found', '#ef5350'); return; }
+
+      const existing = loadEntries();
+      // Merge: avoid exact duplicates (same date + reg)
+      const existingKeys = new Set(existing.map(e => `${e.date}|${e.reg}`));
+      const newEntries = imported.filter(e => !existingKeys.has(`${e.date}|${e.reg}`));
+      const merged = [...newEntries, ...existing];
+      saveEntries(merged);
+      renderTable();
+      showToast(`✓ Imported ${newEntries.length} new entries`);
+    } catch(err) {
+      showToast('Import failed — check file format', '#ef5350');
+    }
+    // Reset so same file can be re-imported
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// Enter key on registration input
+document.getElementById('reg-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    document.getElementById('notes-input').focus();
+  }
+});
+document.getElementById('notes-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault();
+    addEntry();
+  }
+});
+
+// Init
+updateClock();
+setInterval(updateClock, 10000);
+renderTable();
+</script>
+</body>
+</html>
